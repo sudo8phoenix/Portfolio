@@ -46,17 +46,17 @@
 </div>
 </div>
 <div class="hero-graphic" aria-label="Interactive signal illustration">
-<div class="graphic-label">FROM SIGNAL TO SYSTEM</div>
+<canvas class="signal-field" aria-hidden="true"></canvas><div class="graphic-label">FROM SIGNAL TO SYSTEM</div>
 <div class="orbital o1" aria-hidden="true">
 </div>
 <div class="orbital o2" aria-hidden="true">
 </div>
 <div class="orbital o3" aria-hidden="true">
 </div>
-<div class="core" aria-hidden="true">c<span>sg</span>
+<button class="core" aria-label="Rotate the signal system" title="Drag to rotate, or use arrow keys">c<span>sg</span>
 <i>+</i>
-</div>
-<div class="motion-controls"><button class="signal-node n1" aria-label="Move data signal" title="Drag me or use arrow keys">D</button><button class="signal-node n2" aria-label="Move intelligence signal" title="Drag me or use arrow keys">AI</button><button class="signal-node n3" aria-label="Move product signal" title="Drag me or use arrow keys">P</button></div><button class="motion-toggle" aria-pressed="false">Pause motion</button><span class="interaction-hint">DRAG THE SIGNALS ↗</span><div class="graphic-bottom">
+</button>
+<div class="motion-controls"><button class="signal-node n1" aria-label="Move data signal" title="Drag me or use arrow keys">D</button><button class="signal-node n2" aria-label="Move intelligence signal" title="Drag me or use arrow keys">AI</button><button class="signal-node n3" aria-label="Move product signal" title="Drag me or use arrow keys">P</button></div><button class="motion-toggle" aria-pressed="false">Pause motion</button><span class="interaction-hint">DRAG TO EXPLORE ↗</span><div class="graphic-bottom">
 <span>DATA</span>
 <span>INTELLIGENCE</span>
 <span>PRODUCT</span>
@@ -96,7 +96,7 @@
 <a class="text-link" href="https://github.com/sudo8phoenix?tab=repositories" target="_blank" rel="noreferrer">All repositories ↗</a>
 </div>
 <article class="project">
-<div class="project-art agent" aria-label="Time Agent conceptual workflow illustration">
+<div class="project-art agent" aria-label="Time Agent conceptual workflow illustration"><button class="demo-control" data-demo="agent">Run workflow ↗</button>
 <div class="flow">
 <span>Site report</span>
 <b>↓</b>
@@ -118,7 +118,7 @@
 </div>
 </article>
 <article class="project">
-<div class="project-art chain" aria-label="InvoChain conceptual workflow illustration">
+<div class="project-art chain" aria-label="InvoChain conceptual workflow illustration"><button class="demo-control" data-demo="chain">Verify invoice ↗</button>
 <div class="invoice">
 <div>INVOCHAIN <span>01 / INVOICE</span>
 </div>
@@ -141,7 +141,7 @@
 </div>
 </article>
 <article class="project">
-<div class="project-art vision" aria-label="Fridge Vision conceptual workflow illustration">
+<div class="project-art vision" aria-label="Fridge Vision conceptual workflow illustration"><button class="demo-control" data-demo="vision">Scan ingredients ↗</button>
 <div class="vision">
 <div class="detect d1">Tomato <small>ingredient detected</small>
 </div>
@@ -164,6 +164,9 @@
 </article>
 <div class="more-work">
 <p class="eyebrow">ALSO EXPLORING</p>
+<a class="repository-detail" href="https://github.com/sudo8phoenix/product-analytics-warehouse" target="_blank" rel="noreferrer"><strong>Product Analytics Warehouse</strong><span>A reproducible ecommerce analytics pipeline for purchase funnels, daily activity, and retention. Includes BigQuery views, GA4 analysis, and a Looker Studio report.<small>Python · SQL · BigQuery · Looker Studio</small></span><b>↗</b></a>
+<a class="repository-detail" href="https://github.com/sudo8phoenix/Rag-System" target="_blank" rel="noreferrer"><strong>Voice-Based Agentic RAG</strong><span>A modular document question-answering system with voice input and output, configurable chunking, hybrid retrieval, and cross-encoder reranking.<small>Python · Gradio · Chroma / FAISS / Qdrant · Ollama</small></span><b>↗</b></a>
+
 <a href="https://github.com/sudo8phoenix/Astra" target="_blank" rel="noreferrer">
 <strong>Astra</strong>
 <span>Multi-agent personal assistant · FastAPI, React, Redis</span>
