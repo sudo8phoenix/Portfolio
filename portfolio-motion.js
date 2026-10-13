@@ -68,7 +68,7 @@ if ('IntersectionObserver' in window && !reducedMotion.matches) {
       observer.unobserve(entry.target);
     }
   }, { threshold: .08 });
-  document.querySelectorAll('.project, .section-head, .timeline article, .about-grid, .contact-grid').forEach(element => {
+  document.querySelectorAll('.project, .section-head, .timeline article, .background-layout, .contact-grid').forEach(element => {
     element.classList.add('scroll-reveal');
     observer.observe(element);
   });
@@ -263,19 +263,3 @@ graphic.querySelectorAll('.signal-node').forEach((node, index) => {
     paintField(0);
   });
 });
-const capabilities = {
-  data: { copy: 'From raw events to useful decisions: forecasting pipelines, data quality, purchase funnels, and retention analysis.', name: 'Product Analytics Warehouse', repo: 'product-analytics-warehouse', group: 2 },
-  ai: { copy: 'From documents to grounded answers: hybrid retrieval, reranking, voice interfaces, and evidence-linked agent workflows.', name: 'Voice-Based Agentic RAG', repo: 'Rag-System', group: 2 },
-  product: { copy: 'From a model to an application: structured APIs, responsive interfaces, authentication, and persistent data.', name: 'InvoChain', repo: 'InvoChain', group: 1 }
-};
-for (const button of document.querySelectorAll('[data-skill]')) {
-  button.addEventListener('click', () => {
-    const capability = capabilities[button.dataset.skill];
-    document.querySelectorAll('[data-skill]').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
-    document.querySelector('.skill-description').textContent = capability.copy;
-    const link = document.querySelector('.skill-project');
-    link.textContent = `Explore ${capability.name} ↗`;
-    link.href = `https://github.com/sudo8phoenix/${capability.repo}`;
-    document.querySelectorAll('.toolkit > div:not(.skill-explorer)').forEach((group, index) => group.classList.toggle('skill-highlight', index === capability.group));
-  });
-}
