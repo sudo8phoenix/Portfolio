@@ -93,6 +93,7 @@ updateScroll();
 // Lightweight live signal field; only animate while the scene is visible.
 const field = document.querySelector('.signal-field');
 const ctx = field.getContext('2d');
+if (ctx) graphic.classList.add('canvas-orbits');
 const core = graphic.querySelector('.core');
 let sceneVisible = true;
 let turn = 0;
@@ -121,6 +122,17 @@ function paintField(time) {
   const moving = !paused && !reducedMotion.matches;
   const t = moving ? time * .00025 : 0;
   const center = { x: width / 2, y: height * .49 };
+  // Draw rotating ellipses directly, avoiding browser-specific CSS interpolation.
+  const radius = Math.min(width * .32, width < 360 ? 105 : 122.5);
+  for (let index = 0; index < 3; index++) {
+    const angle = ((index === 1 ? -turn : turn) + [-35, 35, 90][index]) * Math.PI / 180;
+    ctx.save(); ctx.translate(center.x, center.y); ctx.rotate(angle);
+    ctx.strokeStyle = index === 2 ? '#a7b7d0' : '#7d9deb'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(0, 0, radius, radius * .65, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = index === 2 ? '#7891b9' : '#235be8';
+    ctx.beginPath(); ctx.arc(radius * .7, -radius * .65 * Math.sqrt(1 - .49), 3.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
   ctx.lineWidth = .6;
   for (const point of points) {
     const x = point.x + Math.sin(t + point.phase) * 9;
@@ -141,7 +153,7 @@ function sceneTick(time) {
   if (!sceneVisible || document.hidden) { lastTime = 0; return; }
   const delta = lastTime ? Math.min(time - lastTime, 40) : 0;
   lastTime = time;
-  if (!paused && !reducedMotion.matches && !spinDrag) turn += delta * .007;
+  if (!paused && !reducedMotion.matches && !spinDrag) turn += delta * .018;
   graphic.style.setProperty('--turn', `${turn}deg`);
   paintField(time);
   if (!paused && !reducedMotion.matches) sceneFrame = requestAnimationFrame(sceneTick);
@@ -227,5 +239,43 @@ for (const button of document.querySelectorAll('.demo-control')) {
       button.textContent = '3 ingredients found · Rescan';
     }
     button.disabled = false;
+  });
+}
+
+// Signal modes reveal the three disciplines behind the portfolio.
+const signalModes = [
+  { label: 'DATA', copy: 'DATA · TURNING RAW SIGNALS INTO DECISIONS', color: '#235be8' },
+  { label: 'AI', copy: 'INTELLIGENCE · RETRIEVAL, MODELS & AGENTS', color: '#286b62' },
+  { label: 'BUILD', copy: 'PRODUCT · APIS, INTERFACES & WORKFLOWS', color: '#936039' }
+];
+graphic.querySelectorAll('.signal-node').forEach((node, index) => {
+  let down = null;
+  node.addEventListener('pointerdown', event => { down = [event.clientX, event.clientY]; });
+  node.addEventListener('click', event => {
+    if (down && event.detail && Math.hypot(event.clientX - down[0], event.clientY - down[1]) > 8) return;
+    const mode = signalModes[index];
+    core.innerHTML = `<span class="mode-label">${mode.label}</span><i>+</i>`;
+    graphic.dataset.mode = ['data', 'ai', 'product'][index];
+    graphic.querySelector('.interaction-hint').textContent = mode.copy;
+    graphic.querySelectorAll('.signal-node').forEach(signal => signal.setAttribute('aria-pressed', String(signal === node)));
+    turn += 45;
+    graphic.style.setProperty('--turn', `${turn}deg`);
+    paintField(0);
+  });
+});
+const capabilities = {
+  data: { copy: 'From raw events to useful decisions: forecasting pipelines, data quality, purchase funnels, and retention analysis.', name: 'Product Analytics Warehouse', repo: 'product-analytics-warehouse', group: 2 },
+  ai: { copy: 'From documents to grounded answers: hybrid retrieval, reranking, voice interfaces, and evidence-linked agent workflows.', name: 'Voice-Based Agentic RAG', repo: 'Rag-System', group: 2 },
+  product: { copy: 'From a model to an application: structured APIs, responsive interfaces, authentication, and persistent data.', name: 'InvoChain', repo: 'InvoChain', group: 1 }
+};
+for (const button of document.querySelectorAll('[data-skill]')) {
+  button.addEventListener('click', () => {
+    const capability = capabilities[button.dataset.skill];
+    document.querySelectorAll('[data-skill]').forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
+    document.querySelector('.skill-description').textContent = capability.copy;
+    const link = document.querySelector('.skill-project');
+    link.textContent = `Explore ${capability.name} ↗`;
+    link.href = `https://github.com/sudo8phoenix/${capability.repo}`;
+    document.querySelectorAll('.toolkit > div:not(.skill-explorer)').forEach((group, index) => group.classList.toggle('skill-highlight', index === capability.group));
   });
 }
