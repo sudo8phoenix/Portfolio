@@ -1,107 +1,91 @@
-const revealItems = document.querySelectorAll(".reveal");
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-if (prefersReducedMotion) {
-  revealItems.forEach((item) => item.classList.add("is-visible"));
-} else {
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-visible");
-        revealObserver.unobserve(entry.target);
-      });
-    },
-    { threshold: 0.18, rootMargin: "0px 0px -10% 0px" }
-  );
-
-  revealItems.forEach((item) => revealObserver.observe(item));
-}
-
-const canvas = document.querySelector("#signal-canvas");
-const context = canvas ? canvas.getContext("2d") : null;
-let width = 0;
-let height = 0;
-let animationFrame = 0;
-let pointerX = 0.72;
-let pointerY = 0.34;
-
-const nodes = Array.from({ length: 42 }, (_, index) => ({
-  x: (index * 97) % 100,
-  y: (index * 53) % 100,
-  speed: 0.18 + (index % 7) * 0.035,
-  phase: index * 0.75,
-}));
-
-function resizeCanvas() {
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
-  width = canvas.clientWidth;
-  height = canvas.clientHeight;
-  canvas.width = Math.floor(width * ratio);
-  canvas.height = Math.floor(height * ratio);
-  context.setTransform(ratio, 0, 0, ratio, 0, 0);
-}
-
-function drawSignal(time) {
-  context.clearRect(0, 0, width, height);
-  context.lineWidth = 1;
-
-  nodes.forEach((node, index) => {
-    const driftX = Math.sin(time * node.speed + node.phase) * 42;
-    const driftY = Math.cos(time * node.speed * 0.8 + node.phase) * 32;
-    const x = (node.x / 100) * width + driftX + (pointerX - 0.5) * 36;
-    const y = (node.y / 100) * height + driftY + (pointerY - 0.5) * 28;
-
-    context.fillStyle = index % 5 === 0 ? "#c8ff3d" : index % 3 === 0 ? "#ff5f48" : "#f7f4ec";
-    context.fillRect(x, y, index % 5 === 0 ? 7 : 4, index % 5 === 0 ? 7 : 4);
-
-    if (index > 0) {
-      const previous = nodes[index - 1];
-      const px = (previous.x / 100) * width + Math.sin(time * previous.speed + previous.phase) * 42;
-      const py = (previous.y / 100) * height + Math.cos(time * previous.speed * 0.8 + previous.phase) * 32;
-      const distance = Math.hypot(x - px, y - py);
-
-      if (distance < 260) {
-        context.strokeStyle = `rgba(247, 244, 236, ${Math.max(0.06, 0.28 - distance / 900)})`;
-        context.beginPath();
-        context.moveTo(x, y);
-        context.lineTo(px, py);
-        context.stroke();
-      }
-    }
-  });
-
-  context.strokeStyle = "rgba(31, 84, 255, 0.78)";
-  context.lineWidth = 2;
-  for (let row = 0; row < 4; row += 1) {
-    context.beginPath();
-    for (let x = 0; x <= width; x += 18) {
-      const y = height * (0.18 + row * 0.18) + Math.sin(x * 0.012 + time * 1.4 + row) * 18;
-      if (x === 0) context.moveTo(x, y);
-      else context.lineTo(x, y);
-    }
-    context.stroke();
-  }
-
-  animationFrame = requestAnimationFrame((nextTime) => drawSignal(nextTime / 1000));
-}
-
-function startCanvas() {
-  resizeCanvas();
-  if (!prefersReducedMotion) {
-    animationFrame = requestAnimationFrame((time) => drawSignal(time / 1000));
-  } else {
-    drawSignal(0);
-    cancelAnimationFrame(animationFrame);
+'use strict';
+window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+const year = document.getElementById('year');
+if (year) year.textContent = new Date().getFullYear();
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const graphic = document.querySelector('.hero-graphic');
+const toggle = document.querySelector('.motion-toggle');
+let paused = reducedMotion.matches;
+function syncMotion() {
+  graphic.classList.toggle('motion-paused', paused);
+  toggle.textContent = paused ? 'Play motion' : 'Pause motion';
+  toggle.setAttribute('aria-pressed', String(paused));
+  if (paused) {
+    graphic.style.setProperty('--tilt-x', '0deg');
+    graphic.style.setProperty('--tilt-y', '0deg');
+    graphic.style.setProperty('--scroll-turn', '0deg');
   }
 }
-
-if (context) {
-  window.addEventListener("resize", resizeCanvas);
-  window.addEventListener("pointermove", (event) => {
-    pointerX = event.clientX / Math.max(window.innerWidth, 1);
-    pointerY = event.clientY / Math.max(window.innerHeight, 1);
+toggle.addEventListener('click', () => { paused = !paused; syncMotion(); });
+reducedMotion.addEventListener('change', () => { paused = reducedMotion.matches; syncMotion(); });
+syncMotion();
+graphic.addEventListener('pointermove', event => {
+  if (paused || reducedMotion.matches || event.pointerType === 'touch') return;
+  const rect = graphic.getBoundingClientRect();
+  graphic.style.setProperty('--tilt-x', `${-(event.clientY - rect.top - rect.height / 2) / rect.height * 20}deg`);
+  graphic.style.setProperty('--tilt-y', `${(event.clientX - rect.left - rect.width / 2) / rect.width * 20}deg`);
+});
+graphic.addEventListener('pointerleave', () => {
+  graphic.style.setProperty('--tilt-x', '0deg');
+  graphic.style.setProperty('--tilt-y', '0deg');
+});
+for (const node of document.querySelectorAll('.signal-node')) {
+  let drag = null;
+  function place(x, y) {
+    const rect = graphic.getBoundingClientRect();
+    node.style.left = `${Math.max(6, Math.min(x, rect.width - node.offsetWidth - 6))}px`;
+    node.style.top = `${Math.max(45, Math.min(y, rect.height - node.offsetHeight - 56))}px`;
+    node.classList.add('moved');
+  }
+  node.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    const rect = node.getBoundingClientRect();
+    drag = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    node.setPointerCapture(event.pointerId);
+    node.classList.add('dragging');
   });
-
-  startCanvas();
+  node.addEventListener('pointermove', event => {
+    if (!drag) return;
+    const rect = graphic.getBoundingClientRect();
+    place(event.clientX - rect.left - drag.x, event.clientY - rect.top - drag.y);
+  });
+  const stop = () => { drag = null; node.classList.remove('dragging'); };
+  node.addEventListener('pointerup', stop);
+  node.addEventListener('pointercancel', stop);
+  node.addEventListener('lostpointercapture', stop);
+  node.addEventListener('keydown', event => {
+    const delta = { ArrowLeft: [-10, 0], ArrowRight: [10, 0], ArrowUp: [0, -10], ArrowDown: [0, 10] }[event.key];
+    if (!delta) return;
+    event.preventDefault();
+    place(node.offsetLeft + delta[0], node.offsetTop + delta[1]);
+  });
 }
+if ('IntersectionObserver' in window && !reducedMotion.matches) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: .08 });
+  document.querySelectorAll('.project, .section-head, .timeline article, .about-grid, .contact-grid').forEach(element => {
+    element.classList.add('scroll-reveal');
+    observer.observe(element);
+  });
+}
+const progress = document.createElement('div');
+progress.className = 'scroll-progress';
+progress.setAttribute('aria-hidden', 'true');
+document.body.append(progress);
+let framePending = false;
+function updateScroll() {
+  framePending = false;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  progress.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+  if (!paused && !reducedMotion.matches) graphic.style.setProperty('--scroll-turn', `${Math.min(window.scrollY * .045, 35)}deg`);
+}
+window.addEventListener('scroll', () => {
+  if (!framePending) { framePending = true; requestAnimationFrame(updateScroll); }
+}, { passive: true });
+window.addEventListener('resize', updateScroll);
+updateScroll();
