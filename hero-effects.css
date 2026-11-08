@@ -1,0 +1,21 @@
+/* The title stays still while the background responds to a click. */
+.hero{position:relative;isolation:isolate}
+.hero-ripple{position:absolute;inset:0;z-index:0;pointer-events:none;width:100%;height:100%;mask-image:linear-gradient(transparent,#000 12%,#000 86%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 12%,#000 86%,transparent)}
+.hero-top,.hero-grid,.hero-footer{position:relative;z-index:1}
+.hero-copy{min-width:0}
+.portrait-depth{position:absolute;inset:0;z-index:1;width:100%;height:100%}
+@media(max-width:850px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+  .portrait-stage{overflow:visible;perspective:1100px}
+  .portrait-depth{transform-style:preserve-3d;transform:rotateX(var(--portrait-rx,0deg)) rotateY(var(--portrait-ry,0deg));transition:transform .45s var(--motion-ease)}
+  .portrait-depth>img{transform:translate3d(var(--portrait-x,0px),var(--portrait-y,0px),22px) rotate(var(--portrait-rotate,0deg));transition:transform .55s var(--motion-ease)}
+  .portrait-depth>.portrait-orbit{transform:translateX(-50%) translateZ(2px)}
+  .portrait-depth>.portrait-signature{transform:translateZ(42px)}
+  .portrait-depth>.portrait-specialty{transform:translateZ(32px) rotate(7deg)}
+}
+@media(prefers-reduced-motion:reduce),(forced-colors:active){.hero-ripple{display:none}}
+@media print{.hero-ripple{display:none}}
+
+/* Give the name a more open, legible display face. */
+.hero h1{font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:-.045em}
+.hero h1>span{letter-spacing:-.035em}
