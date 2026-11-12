@@ -206,3 +206,18 @@
   .library-page .project-filter-options > button{padding-inline:10px;font-size:12px}
   .library-page .has-project-lab{padding-top:20px}
 }
+
+/* Solid mobile controls stay legible over the page in either appearance. */
+@media(max-width:850px){
+  .appearance-picker>summary{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+  .appearance-picker>summary:hover,.appearance-picker[open]>summary{background:var(--soft)}
+  .appearance-options,.mobile-menu nav{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+
+/* One-tap appearance control; the icon describes the next appearance. */
+.appearance-toggle{flex:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid transparent;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer;transition:background .18s,color .18s}
+.appearance-toggle .ui-icon{width:19px;height:19px}
+.appearance-toggle:hover{background:var(--soft);color:var(--ink)}
+.appearance-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:850px){.appearance-toggle{background:var(--surface);border-color:var(--line);color:var(--ink)}}
+@media(prefers-reduced-motion:reduce){.appearance-toggle{transition:none}}

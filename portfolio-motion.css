@@ -49,3 +49,13 @@ button,select{-webkit-appearance:none;appearance:none}
 .hero-demo .demo-caption .eyebrow{font:500 11px/1.5 var(--sans);letter-spacing:.08em;color:var(--muted)}
 .hero-review{padding:24px}.quick-source{margin-top:20px}.hero-review blockquote{margin:10px 0 18px}.quick-proposal{padding-block:14px}.quick-result{margin-block:14px}.hero-grid{align-items:center}.hero-demo .demo-caption{margin-bottom:14px}
 @media(max-width:540px){.hero-review{padding:22px 20px}.hero-demo .demo-caption .eyebrow{font-size:10px}}
+
+/* Match the snapshot lifetime to the reveal; suppress the default crossfade. */
+html[data-theme-transition]::view-transition-group(root){animation-duration:1700ms}
+html[data-theme-transition]::view-transition-old(root),html[data-theme-transition]::view-transition-new(root){animation:none;mix-blend-mode:normal}
+html[data-theme-transition]::view-transition-old(root){z-index:1}
+html[data-theme-transition]::view-transition-new(root){z-index:2;will-change:clip-path}
+html[data-theme-transition] *,html[data-theme-transition] *::before,html[data-theme-transition] *::after{animation-play-state:paused!important}
+@media(max-width:850px){
+  .mobile-menu summary{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding-inline:14px;color:var(--ink)}
+}
