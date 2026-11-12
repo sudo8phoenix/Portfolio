@@ -1,28 +1,32 @@
 'use strict';
 
-// Keep the existing theme persistence and system preference handling.
+// Follow the system initially; a direct toggle reuses the saved-theme pipeline.
 const appearanceSelect = document.querySelector('[name="appearance"]');
 if (appearanceSelect) {
-  const picker = document.createElement('details');
-  picker.className = 'appearance-picker';
-  picker.innerHTML = `<summary aria-label="Choose appearance" title="Choose appearance"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16Z" fill="currentColor" stroke="none"/></svg></summary><div class="appearance-options" aria-label="Appearance"><span>Appearance</span>${['Light', 'Dark', 'System'].map(label => `<button type="button" data-appearance="${label.toLowerCase()}" aria-pressed="false"><span>${label}</span><span class="appearance-check" aria-hidden="true">✓</span></button>`).join('')}</div>`;
-  appearanceSelect.parentElement.after(picker);
-  appearanceSelect.parentElement.hidden = true;
-  const summary = picker.querySelector('summary');
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'appearance-toggle';
+  const scheme = matchMedia('(prefers-color-scheme: light)');
+  const sun = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/>';
+  const moon = '<path d="M20.7 13.2A8.8 8.8 0 0 1 10.8 3.3a9 9 0 1 0 9.9 9.9Z"/>';
+  const isLight = () => appearanceSelect.value === 'light' || (appearanceSelect.value === 'system' && scheme.matches);
   const sync = () => {
-    picker.querySelectorAll('[data-appearance]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.appearance === appearanceSelect.value)));
-    summary.setAttribute('aria-label', `Choose appearance, currently ${appearanceSelect.value}`);
+    const next = isLight() ? 'dark' : 'light';
+    const label = `Switch to ${next} mode`;
+    toggle.setAttribute('aria-label', label);
+    toggle.title = label;
+    toggle.innerHTML = `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${next === 'light' ? sun : moon}</svg>`;
   };
-  picker.querySelectorAll('[data-appearance]').forEach(button => button.addEventListener('click', () => {
-    appearanceSelect.value = button.dataset.appearance;
+  appearanceSelect.parentElement.after(toggle);
+  appearanceSelect.parentElement.hidden = true;
+  toggle.addEventListener('click', () => {
+    document.querySelectorAll('.mobile-menu[open]').forEach(menu => { menu.open = false; });
+    appearanceSelect.value = isLight() ? 'dark' : 'light';
     appearanceSelect.dispatchEvent(new Event('change', {bubbles:true}));
-    sync(); picker.open = false; summary.focus();
-  }));
+  });
   appearanceSelect.addEventListener('change', sync);
-  picker.addEventListener('toggle', () => { if (picker.open) document.querySelectorAll('.mobile-menu[open]').forEach(menu => { menu.open = false; }); });
-  document.querySelectorAll('.mobile-menu').forEach(menu => menu.addEventListener('toggle', () => { if (menu.open) picker.open = false; }));
-  document.addEventListener('click', event => { if (!picker.contains(event.target)) picker.open = false; });
-  picker.addEventListener('keydown', event => { if (event.key === 'Escape') { picker.open = false; summary.focus(); } });
+  document.addEventListener('portfolio-theme-change', sync);
+  scheme.addEventListener('change', sync);
   sync();
 }
 

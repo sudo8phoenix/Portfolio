@@ -7,13 +7,70 @@ function applyTheme(value) {
   if (appearance) appearance.value = value;
   const light = value === 'light' || (value === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', light ? '#f7f7f4' : '#111214');
+  document.dispatchEvent(new Event('portfolio-theme-change'));
+}
+// Fluid paint reveal, built on Magic UI's native View Transition approach:
+// https://magicui.design/docs/components/animated-theme-toggler
+// One continuous contour is browser-interpolated, without separate box cutouts.
+let activeThemeTransition;
+let themeTransitionVersion = 0;
+function transitionTheme(value) {
+  const root = document.documentElement;
+  const version = ++themeTransitionVersion;
+  const isLight = mode => mode === 'light' || (mode === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
+  activeThemeTransition?.skipTransition();
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce), (forced-colors: active)').matches || isLight(value) === isLight(root.dataset.theme)) {
+    delete root.dataset.themeTransition;
+    applyTheme(value);
+    return;
+  }
+  const bounds = (document.querySelector('.appearance-toggle') || appearance)?.getBoundingClientRect();
+  const x = bounds ? bounds.left + bounds.width / 2 : innerWidth / 2;
+  const y = bounds ? bounds.top + bounds.height / 2 : 40;
+  const reach = Math.ceil(Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))) * 1.025;
+  const amplitude = Math.min(110, reach * .13);
+  const directions = Array.from({length: 64}, (_, i) => {
+    const angle = i / 64 * Math.PI * 2;
+    return {angle, dx: Math.cos(angle), dy: Math.sin(angle)};
+  });
+  // Prepare the flowing edge before capture; no JavaScript runs on animation frames.
+  const frames = Array.from({length: 51}, (_, frame) => {
+    const progress = frame / 50;
+    const swell = Math.sin(Math.PI * progress);
+    const points = directions.map(({angle, dx, dy}) => {
+      const flow = Math.sin(angle * 3 + progress * 2.4) * .62
+        + Math.sin(angle * 5 - progress * 3.2 + 1.3) * .28
+        + Math.sin(angle * 9 + progress * 4.1) * .1;
+      const radius = Math.max(0, reach * progress + amplitude * swell * flow);
+      return `${(x + dx * radius).toFixed(2)}px ${(y + dy * radius).toFixed(2)}px`;
+    });
+    return {clipPath: `polygon(${points.join(',')})`};
+  });
+  root.dataset.themeTransition = 'active';
+  const transition = document.startViewTransition(() => {
+    if (version === themeTransitionVersion) applyTheme(value);
+  });
+  activeThemeTransition = transition;
+  transition.ready.then(() => {
+    if (version !== themeTransitionVersion) return;
+    return root.animate(frames, {
+      duration: 1700,
+      easing: 'linear',
+      fill: 'both',
+      pseudoElement: '::view-transition-new(root)'
+    }).finished;
+  }).catch(() => { /* A newer choice can supersede this reveal. */ });
+  transition.finished.finally(() => {
+    if (activeThemeTransition === transition) activeThemeTransition = null;
+    if (version === themeTransitionVersion) delete root.dataset.themeTransition;
+  });
 }
 let theme = 'system';
 try { const saved = localStorage.getItem('portfolio-appearance'); if (allowedThemes.has(saved)) theme = saved; } catch { /* Storage is optional. */ }
 applyTheme(theme);
 appearance?.addEventListener('change', () => {
   theme = allowedThemes.has(appearance.value) ? appearance.value : 'dark';
-  applyTheme(theme);
+  transitionTheme(theme);
   try { localStorage.setItem('portfolio-appearance', theme); } catch { /* Storage is optional. */ }
 });
 window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => applyTheme(theme));
