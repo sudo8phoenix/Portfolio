@@ -54,7 +54,7 @@ function transitionTheme(value) {
   transition.ready.then(() => {
     if (version !== themeTransitionVersion) return;
     return root.animate(frames, {
-      duration: 1700,
+      duration: 1300,
       easing: 'linear',
       fill: 'both',
       pseudoElement: '::view-transition-new(root)'
